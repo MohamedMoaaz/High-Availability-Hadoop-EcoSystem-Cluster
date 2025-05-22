@@ -56,7 +56,7 @@ RUN tar -xvzf /tmp/hbase-2.4.9-bin.tar.gz -C /usr/local && \
 
 USER hadoop
 WORKDIR /home/hadoop
-COPY --chown=hadoop:hadoop hbase_config/ $HBASE_HOME/conf/hbase-site.xml
+COPY --chown=hadoop:hadoop hbase-config/hbase-site.xml $HBASE_HOME/conf/hbase-site.xml
 COPY --chown=hadoop:hadoop --chmod=777 start-hbase.sh /home/hadoop/
 RUN cp $HADOOP_HOME/share/hadoop/common/lib/* $HBASE_HOME/lib/
 

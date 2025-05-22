@@ -78,42 +78,50 @@ services:
       - "16000:16000"  
       - "16010:16010"
     environment:
-      - ROLE=hmaster
+      - ROLE=h-master
     networks:
       - hadoopnet
     volumes:
       - hm1_data:/usr/local/hbase/data 
     depends_on:
-      m1:
+      master1:
         condition: service_healthy
-      m2:
+      master2:
         condition: service_healthy
-
+      master3:
+        condition: service_healthy
 
   hmaster2:
-    image: hbase
+    build:
+      context: .
+      target: hbase
     container_name: hmaster2
     hostname: hmaster2
     ports:
       - "16001:16000" 
       - "16011:16010"
     environment:
-      - ROLE=hmaster
+      - ROLE=h-master
     networks:
       - hadoopnet
     volumes:
       - hm2_data:/usr/local/hbase/data
     depends_on:
-      m1:
+      master1:
         condition: service_healthy
-      m2:
+      master2:
+        condition: service_healthy
+      master3:
         condition: service_healthy
 
-    
   regionserver1:
-    image: hbase
+    build:
+      context: .
+      target: hbase
     hostname: regionserver1
     container_name: regionserver1
+    ports:
+      - "16020:16020"
     environment:
       - ROLE=region-server
     networks:
@@ -125,11 +133,17 @@ services:
         condition: service_healthy
       master2:
         condition: service_healthy
+      master3:
+        condition: service_healthy
     
   regionserver2:
-    image: hbase
+    build:
+      context: .
+      target: hbase
     hostname: regionserver2
     container_name: regionserver2
+    ports:
+      - "16021:16020"  
     environment:
       - ROLE=region-server
     networks:
@@ -140,6 +154,8 @@ services:
       master1:
         condition: service_healthy
       master2:
+        condition: service_healthy
+      master3:
         condition: service_healthy
 
 networks:

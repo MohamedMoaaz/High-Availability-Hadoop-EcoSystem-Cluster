@@ -1,7 +1,7 @@
 <configuration>
     <property>
         <name>hbase.rootdir</name>
-        <value>hdfs://hadoop-cluster:8020/hbase</value>
+        <value>hdfs://mycluster:8020/hbase</value>
     </property>
 
     <property>
