@@ -1,0 +1,162 @@
+services:
+  master1:
+    build:
+      context: .
+      target: hadoop-base
+    image: hadoop-base
+    hostname: master1
+    container_name: master1
+    ports:
+      - "8888:8088"
+      - "9878:9870"
+    environment:
+      - ROLE=master
+      - MYID=1
+    networks:
+      - hadoopnet
+    volumes:
+      - zk1-data:/usr/local/zookeeper
+      - jn1:/usr/local/hadoop/journal
+      - hdfs-nn1:/usr/local/hadoop/hdfs/namenode
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs haadmin -checkHealth nn1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  master2:
+    image: hadoop-base
+    hostname: master2
+    container_name: master2
+    ports:
+      - "8788:8088"
+      - "9877:9870"
+    environment:
+      - ROLE=master
+      - MYID=2
+    networks:
+      - hadoopnet
+    volumes:
+      - zk2-data:/usr/local/zookeeper
+      - jn2:/usr/local/hadoop/journal
+      - hdfs-nn2:/usr/local/hadoop/hdfs/namenode
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs haadmin -checkHealth nn2"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  master3:
+    image: hadoop-base
+    hostname: master3
+    container_name: master3
+    ports:
+      - "8688:8088"
+      - "9876:9870"
+    environment:
+      - ROLE=master
+      - MYID=3
+    networks:
+      - hadoopnet
+    volumes:
+      - zk3-data:/usr/local/zookeeper
+      - jn3:/usr/local/hadoop/journal
+      - hdfs-nn3:/usr/local/hadoop/hdfs/namenode
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs haadmin -checkHealth nn3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hmaster1:
+    build:
+      context: .
+      target: hbase
+    container_name: hmaster1
+    hostname: hmaster1
+    ports:
+      - "16000:16000"  
+      - "16010:16010"
+    environment:
+      - ROLE=hmaster
+    networks:
+      - hadoopnet
+    volumes:
+      - hm1_data:/usr/local/hbase/data 
+    depends_on:
+      m1:
+        condition: service_healthy
+      m2:
+        condition: service_healthy
+
+
+  hmaster2:
+    image: hbase
+    container_name: hmaster2
+    hostname: hmaster2
+    ports:
+      - "16001:16000" 
+      - "16011:16010"
+    environment:
+      - ROLE=hmaster
+    networks:
+      - hadoopnet
+    volumes:
+      - hm2_data:/usr/local/hbase/data
+    depends_on:
+      m1:
+        condition: service_healthy
+      m2:
+        condition: service_healthy
+
+    
+  regionserver1:
+    image: hbase
+    hostname: regionserver1
+    container_name: regionserver1
+    environment:
+      - ROLE=region-server
+    networks:
+      - hadoopnet
+    volumes:
+      - hdfs-dn1:/usr/local/hadoop/hdfs/datanode
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+    
+  regionserver2:
+    image: hbase
+    hostname: regionserver2
+    container_name: regionserver2
+    environment:
+      - ROLE=region-server
+    networks:
+      - hadoopnet
+    volumes:
+      - hdfs-dn2:/usr/local/hadoop/hdfs/datanode
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+
+networks:
+  hadoopnet:
+    driver: bridge
+
+volumes:
+  zk1-data:
+  jn1:
+  hdfs-nn1:
+  zk2-data:
+  jn2:
+  hdfs-nn2:
+  zk3-data:
+  jn3:
+  hdfs-nn3:
+  hm1_data:
+  hm2_data:
+  hdfs-dn1:
+  hdfs-dn2:
