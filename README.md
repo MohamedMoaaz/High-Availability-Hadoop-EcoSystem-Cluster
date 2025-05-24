@@ -108,5 +108,5 @@ This will stop and remove all containers and volumes.
 
 ## 🙌 Authors
 
-**Designed & Engineered by**: [Your Name or Team]  
+**Designed & Engineered by**: Mohamed Moaaz
 Inspired by scalable Hadoop deployments for modern data platforms.
