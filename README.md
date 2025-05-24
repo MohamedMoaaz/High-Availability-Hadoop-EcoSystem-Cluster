@@ -1,194 +1,112 @@
-# 🚀 HBase High Availability Cluster with Hadoop on Docker 🐳
+# 🚀 High Availability Hadoop Ecosystem with HBase & Hive
 
-## 🌟 Project Overview
-
-This project implements a **highly available HBase cluster** on Docker containers, integrating **Hadoop HA** with multiple Namenodes, **ZooKeeper quorum**, and **HBase master HA**. It's like building a distributed superhero team where if one member falls, another instantly takes over! 💪
-
-**Key Features:**
-- 🛡️ Fault-tolerant architecture
-- 🔄 Automatic failover
-- ⚖️ Load balancing
-- 🐘 Scalable distributed storage
+This project sets up a production-grade **Hadoop ecosystem** using Docker Compose with High Availability (HA) for **HDFS**, **YARN**, **HBase**, and **Hive**, coordinated via **ZooKeeper** and backed by **PostgreSQL** for Hive Metastore.
 
 ---
 
-## 🏗️ Architecture and Components
+## 📦 Components Overview
 
-### 🐘 Hadoop HA Setup
-- **3 Namenodes** in HA mode (`master1`, `master2`, `master3`) - because one master is never enough!
-- **ZooKeeper quorum** for coordination (the wise council of the cluster)
-- **JournalNodes** for shared edit logs (like a shared diary for the cluster)
-- **HDFS DataNodes** running alongside RegionServers (double agents!)
-
-### 🅱️ HBase HA Setup
-- **2 HBase Masters** (`hmaster1`, `hmaster2`) in active/standby mode (always ready to jump in)
-- **2 RegionServers** (`regionserver1`, `regionserver2`) - the hard workers storing all your data
-- **ZooKeeper** as the backbone (the puppet master behind the scenes)
+| Component         | Count | Description |
+|------------------|-------|-------------|
+| **Hadoop NameNodes (HA)** | 3 | High-availability NameNodes with JournalNodes |
+| **YARN ResourceManager** | 3 | HA Resource Managers embedded in master nodes |
+| **DataNodes & NodeManagers** | 2 | Workers running DataNode & NodeManager |
+| **ZooKeeper Ensemble** | 3 | One per master node for quorum management |
+| **HBase Master (HA)** | 2 | Active-Standby configuration |
+| **HBase RegionServers** | 2 | Storage engine for HBase |
+| **Hive Metastore** | 1 | Backed by PostgreSQL |
+| **HiveServer2** | 1 | Query engine for Hive |
+| **PostgreSQL** | 1 | Metastore DB for Hive |
 
 ---
 
-## 🐳 Docker Compose Configuration
+## 🗂️ Folder Structure
 
-Our `docker-compose.yaml` is the magic recipe that brings everything together:
-
-```yaml
-services:
-  master1, master2, master3: � Hadoop Namenodes with HA configuration
-  hmaster1, hmaster2: 👑 HBase Master nodes
-  regionserver1, regionserver2: 💪 HBase RegionServers (also Hadoop DataNodes)
-
-## 🔑 Key Ingredients
-
-### 📦 Storage & Networking
-- **Persistent volumes** for ZooKeeper, HDFS, and HBase data
-- **Dedicated hadoopnet network** for smooth inter-service communication
-
-### 🩺 Reliability Features
-- **Health checks** to ensure proper startup order and service availability
 ```
-### ⚙️ Configuration Files
-#### 📄 hbase-site.xml (The Brain of HBase)
-Configures all critical operations including:
-- 🎯 High Availability masters setup
-- 🦥 ZooKeeper quorum configuration
-- 📂 Data directories location
-- ⚖️ Load balancer settings for optimal performance
-### ⚙️ Configuration Files (Continued)
-
-#### 📄 zoo.cfg (ZooKeeper's Rulebook)
-Defines the coordination rules for the cluster:
-- � **Ensemble servers** - The team players in the quorum
-- 🔌 **Port configurations** - Communication endpoints
-
-#### 🐋 Dockerfile (Container Blueprint)
-The foundation for building our images with:
-- 🧩 **Necessary binaries** - All required software components
-- ⚙️ **Custom configurations** - Tailored settings for our cluster
-
-#### 🚀 start-hbase.sh (Cluster Ignition)
-The launch sequence script that:
-- Initializes HBase daemons with proper **environment variables**
-- Ensures smooth startup of all components
-## ⚙️ Configuration Magic 
-
-### 📜 Core Configuration Files
-
-#### 📄 zoo.cfg (ZooKeeper's Command Center)
-The rulebook that keeps your ensemble in sync:
-- � **Server Ensemble** - Lists all ZK nodes in the quorum
-- 🔌 **Port Mapping** - 2181 for clients, 2888 for peers, 3888 for elections
-- ⏱️ **Timeouts** - Tune for your network environment
-
-#### 🐋 Dockerfile (Container Architect)
-The blueprint that builds our superhero containers:
-```dockerfile
-FROM hadoop-hbase-base
-🧩 Installs:
-  - OpenJDK 8
-  - Hadoop 3.x 
-  - HBase 2.x
-  - ZooKeeper 3.6
-⚙️ Applies:
-  - Custom XML configs
-  - Security policies
-  - Performance tweaks
+.
+├── Dockerfile               # Multi-stage build for Hadoop, Hive, and HBase
+├── docker-compose.yaml      # Multi-container cluster orchestration
+├── start-hadoop.sh          # Entrypoint script for Hadoop services
+├── start-hbase.sh           # Entrypoint script for HBase services
+├── start-hive.sh            # Entrypoint script for Hive services
 ```
-## 🛠️ Setup and Deployment
 
-### 📋 Prerequisites
+---
 
-Before launching your cluster, ensure you have:
+## 🛠️ Setup Instructions
 
-- 🐳 **Docker & Docker Compose**  
-  ```bash
-  # Verify installation
-  docker --version && docker-compose --version
-
-## 🎯 Validating High Availability
-
-### 🎭 Master Failover Test
-Prove your cluster's resilience by simulating a master failure:
+### 1. 🚧 Build & Start Cluster
 
 ```bash
-# 1. Terminate the active HBase Master (cold-blooded!)
-docker exec -it hmaster1 bash -c "kill -9 \$(jps | grep HMaster | awk '{print \$1}')"
-
-# 2. Watch the standby take over (like a superhero sidekick!)
-watch -n 1 'docker exec hmaster2 bash -c "echo \\\"status 'detailed'\\\" | hbase shell"'
+docker-compose build
+docker-compose up -d
 ```
-## ⚖️ Load Balancing Magic
 
-### 🔀 Triggering Cluster Rebalancing
-Activate HBase's built-in balancer to evenly distribute regions across servers:
+Ensure all services pass their health checks.
+
+### 2. 📊 Access Web UIs
+
+| Service           | URL                        |
+|------------------|----------------------------|
+| **HDFS UI (NN1)**    | http://localhost:9878     |
+| **YARN UI**          | http://localhost:8888     |
+| **HiveServer2 (JDBC)** | jdbc:hive2://localhost:10000 |
+| **HBase UI (HM1)**   | http://localhost:16010    |
+
+---
+
+## 📍 Service Roles
+
+### 🧠 Master Nodes
+- Host **NameNode**, **ResourceManager**, and **ZooKeeper**
+- JournalNode volumes for HA HDFS
+
+### 🔧 Worker Nodes
+- Run **DataNode** and **NodeManager**
+- Depend on all three master nodes
+
+### 🐝 HBase
+- 2 Masters (HA)
+- 2 RegionServers with HDFS-backed volumes
+
+### 🐘 Hive
+- **Metastore** connected to PostgreSQL
+- **HiveServer2** handles queries
+- Runs only after master & metastore are healthy
+
+---
+
+## 📄 Health Checks
+
+Each major service (HDFS, Hive, PostgreSQL, HBase) uses Docker `healthcheck` to ensure container health before others depend on it.
+
+---
+
+## 🔐 Network & Volumes
+
+- **Network**: All containers connected through `hadoopnet` bridge
+- **Volumes**: Separate persistent volumes per component
+
+---
+
+## 🔄 Cleanup
 
 ```bash
-# Enter the HBase shell
-hbase shell
-
-# Enable the balancer (if not already active)
-> balance_switch true
-🚦 "Balancer is now: true"
-
-# Manually trigger rebalancing
-> balance
-🌀 "Balancer ran successfully" (returns true)
-
-# Monitor progress (in another terminal)
-watch -n 1 'docker exec regionserver1 hbase hbck -details'
+docker-compose down -v
 ```
 
-What Happens Next:
+This will stop and remove all containers and volumes.
 
-HBase's balancer thread wakes up (default: every 5 mins)
+---
 
-It calculates the cost of current region distribution
+## 📌 Notes
 
-Proposes optimal region movements (following rules):
+- Ensure your system has enough resources: recommended 8+ GB RAM and 4+ CPUs
+- For production, use external persistent storage and real domain names/IPs
 
-🔀 Max 1 region move per RegionServer at a time
+---
 
-⏳ Respects hbase.balancer.max.balancing (default: 2hr runtime)
+## 🙌 Authors
 
-🚫 Never moves meta/system tables
-
-Pro Tip:
-For immediate rebalancing during maintenance:
-### Force rapid successive balances (careful with production!)
-
-for i in {1..3}; do 
-  echo "balance" | hbase shell
-  sleep 30
-done
-
-## 🔍 Maintenance and Monitoring
-
-### 🛠️ Pro Tips
-- **📜 Log Inspection**  
-  ```bash
-  # Tail HBase logs
-  docker exec -it hmaster1 tail -f /usr/local/hbase/logs/hbase--master-$(hostname).log
-  
-  # Check Hadoop logs
-  docker exec -it master1 tail -f /usr/local/hadoop/logs/hadoop--namenode-$(hostname).log
-🌐 Web UIs for Health Checks
-
-Service	Default Port	Path
-HBase Master	16010	/master-status
-HDFS Namenode	9870	/dfshealth.html
-RegionServers	16030	/rs-status
-
-🚨 Troubleshooting Guide
-🩹 Common Issues and Fixes
-Symptom	Likely Cause	Solution
-HBase master won't activate	ZooKeeper connectivity	docker-compose logs zookeeper1
-Components failing to start	Hadoop services down	Verify Namenode/JournalNode logs
-Port conflicts	Docker mapping overlaps	netstat -tulnp | grep <port>
-Configuration errors	XML file syntax	xmllint --format hbase-site.xml
-📚 Essential References
-📖 Apache HBase Reference Guide
-
-🦉 Hadoop HA Architecture Guide
-
-🔮 ZooKeeper Admin Guide
-
-🐳 Docker Networking Docs
+**Designed & Engineered by**: [Your Name or Team]  
+Inspired by scalable Hadoop deployments for modern data platforms.

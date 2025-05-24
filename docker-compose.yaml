@@ -68,6 +68,84 @@ services:
       timeout: 5s
       retries: 5
 
+  worker:
+    image: hadoop-base
+    hostname: worker
+    container_name: worker
+    environment:
+      - ROLE=worker
+    networks:
+      - hadoopnet
+    volumes:
+      - hdfs-dn1:/usr/local/hadoop/hdfs/datanode
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+      master3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f DataNode && pgrep -f NodeManager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  hive-postgres:
+    image: postgres:13
+    hostname: hive-postgres
+    container_name: hive-postgres
+    environment:
+      POSTGRES_USER: hiveuser
+      POSTGRES_PASSWORD: hivepassword
+      POSTGRES_DB: metastore
+    networks:
+      - hadoopnet
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hiveuser -d metastore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hive-metastore:
+    build: .
+    image: hive
+    hostname: hive-metastore
+    container_name: hive-metastore
+    environment:
+      - ROLE=metastore
+    networks:
+      - hadoopnet
+    healthcheck:
+      test: ["CMD-SHELL", "jps | grep -E 'RunJar'"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      hive-postgres:
+        condition: service_healthy
+      master1:
+        condition: service_healthy
+
+  hive-server2:
+    build: .
+    image: hive
+    hostname: hive-server2
+    container_name: hive-server2
+    environment:
+      - ROLE=server2
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    networks:
+      - hadoopnet
+    depends_on:
+      hive-metastore:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
+
   hmaster1:
     build:
       context: .
@@ -176,3 +254,4 @@ volumes:
   hm2_data:
   hdfs-dn1:
   hdfs-dn2:
+  postgres-data:

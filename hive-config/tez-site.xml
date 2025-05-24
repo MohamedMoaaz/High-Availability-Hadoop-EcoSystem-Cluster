@@ -1,0 +1,12 @@
+<configuration>
+    <!-- 
+        Specifies the location of the Tez library archive (tez.tar.gz) on HDFS.
+        This archive contains all required Tez jars and resources.
+        Hive and other Tez-based applications will reference this path to load Tez at runtime.
+    -->
+    <property>
+        <name>tez.lib.uris</name>
+        <value>${fs.defaultFS}/tez/tez.tar.gz</value>
+        <description>Location of the Tez library archive.</description>
+    </property>
+</configuration>

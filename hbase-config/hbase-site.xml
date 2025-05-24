@@ -1,29 +1,53 @@
 <configuration>
+
+    <!-- 
+        Specifies the root directory in HDFS where HBase will store its data.
+        Replace 'mycluster' with your actual HDFS nameservice or Namenode host.
+    -->
     <property>
         <name>hbase.rootdir</name>
         <value>hdfs://mycluster:8020/hbase</value>
     </property>
 
+    <!-- 
+        Indicates that HBase is running in distributed mode (true = multi-node cluster).
+        Set to false for standalone/local mode.
+    -->
     <property>
         <name>hbase.cluster.distributed</name>
         <value>true</value>
     </property>
     
+    <!-- 
+        List of ZooKeeper quorum servers used by HBase for coordination.
+        These should be the hostnames of your ZooKeeper ensemble.
+    -->
     <property>
         <name>hbase.zookeeper.quorum</name>
         <value>master1,master2,master3</value>
     </property>
 
+    <!-- 
+        The port on which ZooKeeper is listening for client connections (default is 2181).
+    -->
     <property>
         <name>hbase.zookeeper.property.clientPort</name>
         <value>2181</value>
     </property>
 
+    <!-- 
+        Specifies that Write-Ahead Logs (WAL) will use the filesystem-based WAL provider.
+        This is recommended for most standard deployments.
+    -->
     <property>
         <name>hbase.wal.provider</name>
         <value>filesystem</value>
     </property>
 
+    <!-- 
+        Enables HBase replication across clusters or nodes.
+        Useful for data redundancy, backup, or multi-region replication.
+    -->
     <property>
         <name>hbase.replication</name>
         <value>true</value>
