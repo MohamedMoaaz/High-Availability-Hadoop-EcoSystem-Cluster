@@ -90,6 +90,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      
   hive-postgres:
     image: postgres:13
     hostname: hive-postgres
